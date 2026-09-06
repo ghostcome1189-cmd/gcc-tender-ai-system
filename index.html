@@ -1,2485 +1,1096 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GCC Tender AI System</title>
-
-<style>
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-    font-family:Inter,Arial,sans-serif;
-}
-
-:root{
-    --bg:#f5f7fb;
-    --card:#ffffff;
-    --dark:#111827;
-    --text:#172033;
-    --muted:#667085;
-    --border:#e5e7eb;
-    --blue:#2563eb;
-    --green:#16a34a;
-    --orange:#f59e0b;
-    --red:#dc2626;
-}
-
-body{
-    background:var(--bg);
-    color:var(--text);
-}
-
-button,input,select,textarea{
-    font:inherit;
-}
-
-button{
-    cursor:pointer;
-}
-
-.app{
-    display:flex;
-    min-height:100vh;
-}
-
-/* SIDEBAR */
-
-.sidebar{
-    width:250px;
-    background:#111827;
-    color:white;
-    padding:22px 15px;
-    position:fixed;
-    left:0;
-    top:0;
-    bottom:0;
-    z-index:20;
-}
-
-.logo{
-    padding:8px 10px 25px;
-    border-bottom:1px solid #293244;
-}
-
-.logo h1{
-    font-size:19px;
-}
-
-.logo p{
-    color:#9ca3af;
-    font-size:12px;
-    margin-top:5px;
-}
-
-.nav{
-    margin-top:20px;
-}
-
-.nav button{
-    width:100%;
-    text-align:left;
-    background:transparent;
-    color:#cbd5e1;
-    border:0;
-    padding:13px 14px;
-    border-radius:9px;
-    margin-bottom:5px;
-}
-
-.nav button:hover,
-.nav button.active{
-    background:#1f2937;
-    color:white;
-}
-
-.sidebar-bottom{
-    position:absolute;
-    left:15px;
-    right:15px;
-    bottom:20px;
-}
-
-.status{
-    background:#172033;
-    padding:13px;
-    border-radius:10px;
-    font-size:12px;
-    color:#9ca3af;
-}
-
-.status strong{
-    color:#86efac;
-}
-
-/* MAIN */
-
-.main{
-    margin-left:250px;
-    width:calc(100% - 250px);
-}
-
-.topbar{
-    height:70px;
-    background:white;
-    border-bottom:1px solid var(--border);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:0 30px;
-}
-
-.topbar h2{
-    font-size:20px;
-}
-
-.user{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-
-.avatar{
-    width:38px;
-    height:38px;
-    background:#e5e7eb;
-    border-radius:50%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-weight:bold;
-}
-
-.content{
-    padding:30px;
-    max-width:1400px;
-    margin:auto;
-}
-
-.page{
-    display:none;
-}
-
-.page.active{
-    display:block;
-}
-
-/* DASHBOARD */
-
-.hero{
-    background:linear-gradient(135deg,#111827,#243247);
-    color:white;
-    border-radius:18px;
-    padding:32px;
-    margin-bottom:22px;
-}
-
-.hero h1{
-    font-size:31px;
-    margin-bottom:10px;
-}
-
-.hero p{
-    color:#cbd5e1;
-    max-width:750px;
-    line-height:1.6;
-}
-
-.hero-actions{
-    display:flex;
-    gap:10px;
-    margin-top:24px;
-}
-
-.btn{
-    border:0;
-    padding:12px 18px;
-    border-radius:9px;
-    font-weight:600;
-}
-
-.btn-primary{
-    background:#2563eb;
-    color:white;
-}
-
-.btn-light{
-    background:white;
-    color:#111827;
-}
-
-.btn-danger{
-    background:#dc2626;
-    color:white;
-}
-
-.btn-success{
-    background:#16a34a;
-    color:white;
-}
-
-.btn-outline{
-    background:white;
-    color:#111827;
-    border:1px solid var(--border);
-}
-
-.stats{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:16px;
-    margin-bottom:22px;
-}
-
-.stat{
-    background:white;
-    border:1px solid var(--border);
-    border-radius:14px;
-    padding:20px;
-}
-
-.stat-label{
-    color:var(--muted);
-    font-size:13px;
-}
-
-.stat-number{
-    font-size:27px;
-    font-weight:700;
-    margin-top:7px;
-}
-
-.dashboard-grid{
-    display:grid;
-    grid-template-columns:1.4fr 1fr;
-    gap:20px;
-}
-
-/* CARDS */
-
-.card{
-    background:white;
-    border:1px solid var(--border);
-    border-radius:14px;
-    padding:22px;
-}
-
-.card-title{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:18px;
-}
-
-.card-title h3{
-    font-size:17px;
-}
-
-/* UPLOAD */
-
-.upload{
-    border:2px dashed #b6c0cf;
-    border-radius:14px;
-    padding:40px 20px;
-    text-align:center;
-    background:#fafcff;
-}
-
-.upload-icon{
-    font-size:40px;
-    margin-bottom:12px;
-}
-
-.upload h3{
-    margin-bottom:8px;
-}
-
-.upload p{
-    color:var(--muted);
-    font-size:14px;
-    margin-bottom:18px;
-}
-
-input[type=file]{
-    display:none;
-}
-
-.file-name{
-    margin-top:14px;
-    color:#2563eb;
-    font-weight:600;
-}
-
-/* TABLE */
-
-.table-wrap{
-    overflow-x:auto;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-th,td{
-    padding:13px;
-    border-bottom:1px solid var(--border);
-    text-align:left;
-    font-size:13px;
-}
-
-th{
-    color:var(--muted);
-    font-weight:600;
-}
-
-.badge{
-    display:inline-block;
-    padding:5px 9px;
-    border-radius:20px;
-    font-size:11px;
-    font-weight:bold;
-}
-
-.green{
-    background:#dcfce7;
-    color:#166534;
-}
-
-.yellow{
-    background:#fef3c7;
-    color:#92400e;
-}
-
-.red{
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-.blue{
-    background:#dbeafe;
-    color:#1e40af;
-}
-
-/* WORKFLOW */
-
-.workflow{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:10px;
-    margin-bottom:25px;
-}
-
-.step{
-    background:white;
-    border:1px solid var(--border);
-    padding:15px;
-    border-radius:10px;
-    text-align:center;
-}
-
-.step.active{
-    border-color:#2563eb;
-    background:#eff6ff;
-}
-
-.step-number{
-    width:30px;
-    height:30px;
-    margin:0 auto 7px;
-    border-radius:50%;
-    background:#e5e7eb;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:bold;
-}
-
-.step.active .step-number{
-    background:#2563eb;
-    color:white;
-}
-
-/* FORM */
-
-.form-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:16px;
-}
-
-.form-group{
-    display:flex;
-    flex-direction:column;
-    gap:7px;
-}
-
-.form-group.full{
-    grid-column:1/-1;
-}
-
-.form-group label{
-    font-size:13px;
-    font-weight:600;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea{
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:11px;
-    outline:none;
-    background:white;
-}
-
-textarea{
-    min-height:180px;
-    resize:vertical;
-}
-
-/* PROGRESS */
-
-.progress{
-    height:9px;
-    background:#e5e7eb;
-    border-radius:20px;
-    overflow:hidden;
-}
-
-.progress-bar{
-    height:100%;
-    width:0%;
-    background:#2563eb;
-    transition:.4s;
-}
-
-/* ANALYSIS */
-
-.analysis-box{
-    background:#f8fafc;
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:18px;
-    line-height:1.7;
-    white-space:pre-wrap;
-}
-
-.requirements{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:15px;
-    margin-top:20px;
-}
-
-.requirement{
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:17px;
-}
-
-.requirement h4{
-    margin-bottom:8px;
-}
-
-.requirement p{
-    color:var(--muted);
-    font-size:13px;
-    line-height:1.5;
-}
-
-/* RISK */
-
-.risk-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:15px;
-}
-
-.risk{
-    padding:18px;
-    border-radius:12px;
-    border:1px solid var(--border);
-}
-
-.risk.high{
-    border-left:5px solid #dc2626;
-}
-
-.risk.medium{
-    border-left:5px solid #f59e0b;
-}
-
-.risk.low{
-    border-left:5px solid #16a34a;
-}
-
-/* EMPTY */
-
-.empty{
-    text-align:center;
-    padding:50px 20px;
-    color:var(--muted);
-}
-
-/* TOAST */
-
-.toast{
-    position:fixed;
-    right:20px;
-    bottom:20px;
-    background:#111827;
-    color:white;
-    padding:14px 18px;
-    border-radius:9px;
-    display:none;
-    z-index:100;
-}
-
-/* MOBILE */
-
-.mobile-menu{
-    display:none;
-}
-
-@media(max-width:1000px){
-
-    .stats{
-        grid-template-columns:repeat(2,1fr);
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GCC Tender AI System</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
     }
 
-    .dashboard-grid{
-        grid-template-columns:1fr;
+    body {
+      background: #f5f7fb;
+      color: #172033;
     }
 
-    .requirements,
-    .risk-grid{
-        grid-template-columns:1fr 1fr;
-    }
-}
-
-@media(max-width:750px){
-
-    .sidebar{
-        transform:translateX(-100%);
-        transition:.3s;
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
     }
 
-    .sidebar.open{
-        transform:translateX(0);
+    button {
+      cursor: pointer;
     }
 
-    .main{
-        margin-left:0;
-        width:100%;
+    .app {
+      display: flex;
+      min-height: 100vh;
     }
 
-    .mobile-menu{
-        display:block;
-        border:0;
-        background:transparent;
-        font-size:22px;
+    .sidebar {
+      width: 245px;
+      background: #111827;
+      color: white;
+      padding: 20px;
+      position: fixed;
+      inset: 0 auto 0 0;
     }
 
-    .content{
-        padding:18px;
+    .brand {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 25px;
     }
 
-    .topbar{
-        padding:0 18px;
+    .nav {
+      display: grid;
+      gap: 7px;
     }
 
-    .hero h1{
-        font-size:24px;
+    .nav button {
+      background: transparent;
+      border: 0;
+      color: #cbd5e1;
+      text-align: left;
+      padding: 11px 12px;
+      border-radius: 8px;
     }
 
-    .stats,
-    .form-grid,
-    .requirements,
-    .risk-grid,
-    .workflow{
-        grid-template-columns:1fr;
+    .nav button:hover,
+    .nav button.active {
+      background: #243047;
+      color: white;
     }
 
-    .hero-actions{
-        flex-direction:column;
+    .main {
+      margin-left: 245px;
+      width: calc(100% - 245px);
+      padding: 24px;
     }
-}
-</style>
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .mobile-menu {
+      display: none;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.03);
+    }
+
+    .hero {
+      padding: 28px;
+    }
+
+    h1 {
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin-bottom: 14px;
+    }
+
+    h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .muted {
+      color: #64748b;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 7px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: white;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 16px;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #172033;
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .upload {
+      border: 2px dashed #cbd5e1;
+      padding: 22px;
+      text-align: center;
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    .upload input {
+      margin-top: 10px;
+    }
+
+    .stats {
+      padding: 18px;
+    }
+
+    .stat-number {
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 5px;
+    }
+
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .step {
+      padding: 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    .step.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .step.done {
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+
+    .step.error {
+      border-color: #dc2626;
+      background: #fef2f2;
+    }
+
+    .step-num {
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .progress {
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: #2563eb;
+      transition: width .25s;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 11px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      font-size: 12px;
+    }
+
+    .result-box {
+      white-space: pre-wrap;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 14px;
+      max-height: 380px;
+      overflow: auto;
+      font-size: 13px;
+    }
+
+    .empty {
+      padding: 25px;
+      text-align: center;
+      color: #64748b;
+    }
+
+    .notice {
+      padding: 12px;
+      border-radius: 8px;
+      background: #eff6ff;
+      color: #1e40af;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 850px) {
+      .sidebar {
+        width: 220px;
+        transform: translateX(-100%);
+        transition: .2s;
+        z-index: 10;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main {
+        margin-left: 0;
+        width: 100%;
+        padding: 16px;
+      }
+
+      .mobile-menu {
+        display: block;
+      }
+
+      .grid-2,
+      .grid-4,
+      .workflow {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
 <div class="app">
 
-<!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
 
-<aside class="sidebar" id="sidebar">
-
-    <div class="logo">
-        <h1>GCC Tender AI</h1>
-        <p>Tender Intelligence Platform</p>
+    <div class="brand">
+      GCC Tender AI
     </div>
 
     <nav class="nav">
 
-        <button class="active" onclick="showPage('dashboard',this)">
-            Dashboard
-        </button>
+      <button data-page="dashboard" class="active">
+        Dashboard
+      </button>
 
-        <button onclick="showPage('tenders',this)">
-            Tenders
-        </button>
+      <button data-page="tenders">
+        Tenders
+      </button>
 
-        <button onclick="showPage('analysis',this)">
-            Requirement Analysis
-        </button>
+      <button data-page="analysis">
+        Requirement Analysis
+      </button>
 
-        <button onclick="showPage('compliance',this)">
-            Compliance Matrix
-        </button>
+      <button data-page="compliance">
+        Compliance Matrix
+      </button>
 
-        <button onclick="showPage('risks',this)">
-            Risk Intelligence
-        </button>
+      <button data-page="risks">
+        Risk Intelligence
+      </button>
 
-        <button onclick="showPage('proposal',this)">
-            Proposal Builder
-        </button>
+      <button data-page="proposal">
+        Proposal Builder
+      </button>
 
-        <button onclick="showPage('documents',this)">
-            Documents
-        </button>
+      <button data-page="documents">
+        Documents
+      </button>
 
-        <button onclick="showPage('settings',this)">
-            Settings
-        </button>
+      <button data-page="settings">
+        Settings
+      </button>
 
     </nav>
 
-    <div class="sidebar-bottom">
-        <div class="status">
-            System Status<br>
-            <strong>● Ready</strong>
+  </aside>
+
+
+  <main class="main">
+
+    <div class="topbar">
+
+      <button
+        class="btn btn-secondary mobile-menu"
+        id="mobileMenu">
+        Menu
+      </button>
+
+      <div>
+
+        <strong id="pageTitle">
+          Dashboard
+        </strong>
+
+        <div
+          class="muted"
+          id="tenderHeader">
+          No tender workspace
         </div>
+
+      </div>
+
     </div>
 
-</aside>
 
-<!-- MAIN -->
+    <!-- DASHBOARD -->
 
-<div class="main">
+    <section
+      id="dashboard"
+      class="page active">
 
-<header class="topbar">
+      <div class="card hero">
 
-    <div style="display:flex;align-items:center;gap:12px;">
-        <button class="mobile-menu" onclick="toggleSidebar()">☰</button>
-        <h2 id="pageTitle">Dashboard</h2>
-    </div>
+        <h1>
+          Turn GCC Tenders Into Structured Workflows
+        </h1>
 
-    <div class="user">
-        <span>Admin</span>
-        <div class="avatar">A</div>
-    </div>
-
-</header>
-
-
-<main class="content">
-
-<!-- DASHBOARD -->
-
-<section id="dashboard" class="page active">
-
-    <div class="hero">
-
-        <h1>Turn GCC Tenders Into Winning Proposals</h1>
-
-        <p>
-            Upload a tender or RFP, extract requirements,
-            identify compliance gaps and risks, then build
-            a structured technical proposal.
+        <p class="muted">
+          Upload a tender document, extract its text,
+          then move through analysis, compliance,
+          risk and proposal stages.
         </p>
 
-        <div class="hero-actions">
+      </div>
 
-            <button class="btn btn-primary"
-                    onclick="showPageByName('tenders')">
-                + New Tender
-            </button>
 
-            <button class="btn btn-light"
-                    onclick="showPageByName('proposal')">
-                Open Proposal Builder
-            </button>
+      <div class="grid grid-4">
+
+        <div class="card stats">
+
+          <div class="muted">
+            Total Tenders
+          </div>
+
+          <div
+            class="stat-number"
+            id="statTenders">
+            0
+          </div>
 
         </div>
 
-    </div>
 
+        <div class="card stats">
 
-    <div class="stats">
+          <div class="muted">
+            Requirements
+          </div>
 
-        <div class="stat">
-            <div class="stat-label">Total Tenders</div>
-            <div class="stat-number" id="totalTenders">0</div>
+          <div
+            class="stat-number"
+            id="statRequirements">
+            0
+          </div>
+
         </div>
 
-        <div class="stat">
-            <div class="stat-label">Requirements</div>
-            <div class="stat-number" id="totalRequirements">0</div>
+
+        <div class="card stats">
+
+          <div class="muted">
+            Compliance Items
+          </div>
+
+          <div
+            class="stat-number"
+            id="statCompliance">
+            0
+          </div>
+
         </div>
 
-        <div class="stat">
-            <div class="stat-label">Compliance</div>
-            <div class="stat-number" id="complianceScore">0%</div>
+
+        <div class="card stats">
+
+          <div class="muted">
+            High Risks
+          </div>
+
+          <div
+            class="stat-number"
+            id="statHighRisks">
+            0
+          </div>
+
         </div>
 
-        <div class="stat">
-            <div class="stat-label">High Risks</div>
-            <div class="stat-number" id="highRisks">0</div>
+      </div>
+
+
+      <div class="card">
+
+        <h2>
+          Quick Start
+        </h2>
+
+        <div class="upload">
+
+          <div>
+            <strong>
+              Upload tender document
+            </strong>
+          </div>
+
+          <div class="muted">
+            Supported: PDF, DOCX, TXT —
+            maximum 25 MB
+          </div>
+
+          <input
+            id="quickFile"
+            type="file"
+            accept=".pdf,.docx,.txt">
+
         </div>
 
-    </div>
+      </div>
 
 
-    <div class="dashboard-grid">
+      <div class="card">
 
-        <div class="card">
+        <h2>
+          Workflow
+        </h2>
 
-            <div class="card-title">
-                <h3>Quick Start</h3>
+        <div
+          class="workflow"
+          id="dashboardWorkflow">
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- TENDERS -->
+
+    <section
+      id="tenders"
+      class="page">
+
+      <div class="card">
+
+        <h2>
+          Tender Workspace
+        </h2>
+
+
+        <div class="grid grid-2">
+
+          <div class="field">
+
+            <label>
+              Tender Name
+            </label>
+
+            <input
+              id="tenderName"
+              placeholder="e.g. South Subiya Infrastructure Tender">
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Country
+            </label>
+
+            <input
+              id="tenderCountry"
+              placeholder="Kuwait">
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Tender Number
+            </label>
+
+            <input
+              id="tenderNumber"
+              placeholder="Tender / RFP number">
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Client / Authority
+            </label>
+
+            <input
+              id="tenderClient"
+              placeholder="Authority name">
+
+          </div>
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Tender Document
+          </label>
+
+          <div class="upload">
+
+            <input
+              id="tenderFile"
+              type="file"
+              accept=".pdf,.docx,.txt">
+
+            <div
+              id="tenderFileName"
+              class="muted">
+              No file selected
             </div>
 
-            <div class="upload">
-
-                <div class="upload-icon">📄</div>
-
-                <h3>Upload Tender / RFP</h3>
-
-                <p>
-                    PDF, DOCX, TXT and other tender documents
-                </p>
-
-                <label class="btn btn-primary">
-                    Select Document
-                    <input type="file"
-                           id="dashboardFile"
-                           accept=".pdf,.doc,.docx,.txt"
-                           onchange="handleFile(this)">
-                </label>
-
-                <div class="file-name" id="dashboardFileName"></div>
-
-            </div>
+          </div>
 
         </div>
 
 
-        <div class="card">
+        <div class="actions">
 
-            <div class="card-title">
-                <h3>AI Workflow</h3>
-            </div>
+          <button
+            class="btn btn-primary"
+            id="createTenderBtn">
+            Create Tender Workspace
+          </button>
 
-            <div style="line-height:2.2;color:#475467;">
-
-                <div>✓ Document ingestion</div>
-                <div>✓ Requirement extraction</div>
-                <div>✓ Compliance checking</div>
-                <div>✓ Risk identification</div>
-                <div>✓ Proposal generation</div>
-
-            </div>
+          <button
+            class="btn btn-secondary"
+            id="resetTenderBtn">
+            Reset
+          </button>
 
         </div>
 
-    </div>
+      </div>
 
-</section>
+    </section>
 
 
-<!-- TENDERS -->
+    <!-- ANALYSIS -->
 
-<section id="tenders" class="page">
+    <section
+      id="analysis"
+      class="page">
 
-    <div class="card">
+      <div class="card">
 
-        <div class="card-title">
+        <h2>
+          Document Analysis
+        </h2>
 
-            <div>
-                <h3>New Tender</h3>
-                <p style="color:#667085;margin-top:5px;">
-                    Create a tender workspace
-                </p>
-            </div>
 
-        </div>
-
-
-        <div class="form-grid">
-
-            <div class="form-group">
-
-                <label>Tender Name</label>
-
-                <input
-                    id="tenderName"
-                    placeholder="e.g. South Subiya Infrastructure Project">
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>Country</label>
-
-                <select id="country">
-
-                    <option>Kuwait</option>
-                    <option>Saudi Arabia</option>
-                    <option>UAE</option>
-                    <option>Qatar</option>
-                    <option>Oman</option>
-                    <option>Bahrain</option>
-
-                </select>
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>Tender Number</label>
-
-                <input
-                    id="tenderNumber"
-                    placeholder="Tender / RFP number">
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>Client / Authority</label>
-
-                <input
-                    id="client"
-                    placeholder="Client name">
-
-            </div>
-
-
-            <div class="form-group full">
-
-                <label>Tender Document</label>
-
-                <label class="upload">
-
-                    <div class="upload-icon">📁</div>
-
-                    <h3>Choose tender document</h3>
-
-                    <p>PDF, DOCX or TXT</p>
-
-                    <span class="btn btn-outline">
-                        Browse File
-                    </span>
-
-                    <input
-                        type="file"
-                        id="tenderFile"
-                        accept=".pdf,.doc,.docx,.txt"
-                        onchange="handleTenderFile(this)">
-
-                    <div
-                        class="file-name"
-                        id="tenderFileName">
-                    </div>
-
-                </label>
-
-            </div>
-
-        </div>
-
-
-        <div style="margin-top:22px;display:flex;gap:10px;">
-
-            <button class="btn btn-primary"
-                    onclick="createTender()">
-                Create Tender Workspace
-            </button>
-
-            <button class="btn btn-outline"
-                    onclick="resetTender()">
-                Reset
-            </button>
-
-        </div>
-
-    </div>
-
-
-    <div class="card" style="margin-top:20px;">
-
-        <div class="card-title">
-            <h3>Tender Workspace</h3>
-        </div>
-
-        <div id="tenderWorkspace">
-
-            <div class="empty">
-                No tender created yet.
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- ANALYSIS -->
-
-<section id="analysis" class="page">
-
-    <div class="workflow">
-
-        <div class="step active">
-            <div class="step-number">1</div>
-            Upload
-        </div>
-
-        <div class="step active">
-            <div class="step-number">2</div>
-            Extract
-        </div>
-
-        <div class="step">
-            <div class="step-number">3</div>
-            Analyze
-        </div>
-
-        <div class="step">
-            <div class="step-number">4</div>
-            Verify
-        </div>
-
-        <div class="step">
-            <div class="step-number">5</div>
-            Build
-        </div>
-
-    </div>
-
-
-    <div class="card">
-
-        <div class="card-title">
-
-            <div>
-                <h3>Requirement Analysis</h3>
-                <p style="color:#667085;margin-top:5px;">
-                    Extract and classify tender requirements
-                </p>
-            </div>
-
-            <button
-                class="btn btn-primary"
-                onclick="runAnalysis()">
-                Run AI Analysis
-            </button>
-
+        <div
+          class="workflow"
+          id="analysisWorkflow">
         </div>
 
 
         <div class="progress">
-            <div
-                class="progress-bar"
-                id="analysisProgress">
-            </div>
-        </div>
 
-
-        <div
-            id="analysisStatus"
-            style="margin-top:12px;color:#667085;">
-            Ready to analyze.
-        </div>
-
-
-        <div
-            id="analysisResults"
-            style="margin-top:22px;display:none;">
-
-            <div class="analysis-box" id="analysisSummary"></div>
-
-            <div class="requirements">
-
-                <div class="requirement">
-
-                    <h4>Technical</h4>
-
-                    <p>
-                        Technical specifications,
-                        methodology and project requirements.
-                    </p>
-
-                </div>
-
-
-                <div class="requirement">
-
-                    <h4>Commercial</h4>
-
-                    <p>
-                        Pricing, payment terms,
-                        bonds and commercial obligations.
-                    </p>
-
-                </div>
-
-
-                <div class="requirement">
-
-                    <h4>Legal</h4>
-
-                    <p>
-                        Contractual, regulatory,
-                        insurance and legal requirements.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- COMPLIANCE -->
-
-<section id="compliance" class="page">
-
-    <div class="card">
-
-        <div class="card-title">
-
-            <div>
-                <h3>Compliance Matrix</h3>
-
-                <p style="color:#667085;margin-top:5px;">
-                    Track every tender requirement
-                </p>
-
-            </div>
-
-            <button
-                class="btn btn-primary"
-                onclick="addRequirement()">
-                + Add Requirement
-            </button>
-
-        </div>
-
-
-        <div class="table-wrap">
-
-            <table>
-
-                <thead>
-
-                    <tr>
-
-                        <th>ID</th>
-                        <th>Requirement</th>
-                        <th>Category</th>
-                        <th>Status</th>
-                        <th>Action</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody id="complianceTable">
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- RISKS -->
-
-<section id="risks" class="page">
-
-    <div class="card">
-
-        <div class="card-title">
-
-            <div>
-
-                <h3>Risk Intelligence</h3>
-
-                <p style="color:#667085;margin-top:5px;">
-                    Identify tender risks and gaps
-                </p>
-
-            </div>
-
-            <button
-                class="btn btn-primary"
-                onclick="runRiskAnalysis()">
-                Analyze Risks
-            </button>
+          <div
+            class="progress-bar"
+            id="analysisProgress">
+          </div>
 
         </div>
 
 
         <div
-            id="riskResults"
-            class="risk-grid">
-
-            <div class="risk high">
-
-                <span class="badge red">
-                    HIGH
-                </span>
-
-                <h4 style="margin:10px 0;">
-                    Contractual Exposure
-                </h4>
-
-                <p style="color:#667085;font-size:13px;">
-                    Review liquidated damages,
-                    liability and termination clauses.
-                </p>
-
-            </div>
+          id="analysisStatus"
+          class="notice">
+          Upload a tender document to begin.
+        </div>
 
 
-            <div class="risk medium">
+        <div class="actions">
 
-                <span class="badge yellow">
-                    MEDIUM
-                </span>
-
-                <h4 style="margin:10px 0;">
-                    Schedule Risk
-                </h4>
-
-                <p style="color:#667085;font-size:13px;">
-                    Verify project duration and
-                    milestone requirements.
-                </p>
-
-            </div>
-
-
-            <div class="risk low">
-
-                <span class="badge green">
-                    LOW
-                </span>
-
-                <h4 style="margin:10px 0;">
-                    Documentation Gap
-                </h4>
-
-                <p style="color:#667085;font-size:13px;">
-                    Verify supporting certificates
-                    before submission.
-                </p>
-
-            </div>
+          <button
+            class="btn btn-primary"
+            id="runAnalysisBtn">
+            Extract & Analyze Document
+          </button>
 
         </div>
 
-    </div>
-
-</section>
+      </div>
 
 
-<!-- PROPOSAL -->
+      <div class="card">
 
-<section id="proposal" class="page">
+        <h2>
+          Extraction Result
+        </h2>
 
-    <div class="card">
+        <div
+          id="analysisSummary"
+          class="empty">
+          No analysis result yet.
+        </div>
 
-        <div class="card-title">
+      </div>
 
-            <div>
 
-                <h3>Proposal Builder</h3>
+      <div class="card">
 
-                <p style="color:#667085;margin-top:5px;">
-                    Generate a structured technical proposal
-                </p>
+        <h2>
+          Extracted Text
+        </h2>
 
-            </div>
+        <div
+          id="extractedText"
+          class="result-box">
+          No extracted text yet.
+        </div>
 
-            <div style="display:flex;gap:8px;">
+      </div>
 
-                <button
-                    class="btn btn-primary"
-                    onclick="generateProposal()">
-                    Generate Proposal
-                </button>
+    </section>
 
-                <button
-                    class="btn btn-success"
-                    onclick="exportProposal()">
-                    Export
-                </button>
 
-            </div>
+    <!-- COMPLIANCE -->
+
+    <section
+      id="compliance"
+      class="page">
+
+      <div class="card">
+
+        <div
+          class="actions"
+          style="justify-content:space-between">
+
+          <div>
+
+            <h2>
+              Compliance Matrix
+            </h2>
+
+            <p class="muted">
+              Track requirements after document analysis.
+            </p>
+
+          </div>
+
+
+          <button
+            class="btn btn-primary"
+            id="addRequirementBtn">
+            + Add Requirement
+          </button>
 
         </div>
 
 
-        <div class="form-grid">
+        <div style="overflow:auto">
 
-            <div class="form-group">
+          <table>
 
-                <label>Proposal Language</label>
+            <thead>
 
-                <select id="proposalLanguage">
+              <tr>
 
-                    <option>English</option>
-                    <option>Arabic</option>
-                    <option>English + Arabic</option>
+                <th>
+                  Requirement
+                </th>
 
-                </select>
+                <th>
+                  Source
+                </th>
 
-            </div>
+                <th>
+                  Mandatory
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Action
+                </th>
+
+              </tr>
+
+            </thead>
 
 
-            <div class="form-group">
+            <tbody
+              id="requirementsBody">
+            </tbody>
 
-                <label>Proposal Type</label>
-
-                <select id="proposalType">
-
-                    <option>Technical Proposal</option>
-                    <option>Commercial Proposal</option>
-                    <option>Technical + Commercial</option>
-
-                </select>
-
-            </div>
-
-
-            <div class="form-group full">
-
-                <label>Proposal Content</label>
-
-                <textarea
-                    id="proposalText"
-                    placeholder="Generated proposal will appear here...">
-                </textarea>
-
-            </div>
+          </table>
 
         </div>
 
-    </div>
+      </div>
 
-</section>
+    </section>
 
 
-<!-- DOCUMENTS -->
+    <!-- RISKS -->
 
-<section id="documents" class="page">
+    <section
+      id="risks"
+      class="page">
 
-    <div class="card">
+      <div class="card">
 
-        <div class="card-title">
+        <h2>
+          Risk Intelligence
+        </h2>
 
-            <h3>Documents</h3>
+        <p class="muted">
+          Risk extraction will use analyzed tender data.
+          No fake risk score is shown.
+        </p>
 
-            <button
-                class="btn btn-primary"
-                onclick="document.getElementById('documentFile').click()">
-                Upload Document
-            </button>
 
-            <input
-                type="file"
-                id="documentFile"
-                accept=".pdf,.doc,.docx,.txt"
-                onchange="addDocument(this)">
+        <div
+          class="actions"
+          style="margin-top:14px">
+
+          <button
+            class="btn btn-primary"
+            id="runRiskBtn">
+            Analyze Risks From Current Data
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="card">
+
+        <div
+          id="riskList"
+          class="empty">
+          No risks analyzed yet.
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- PROPOSAL -->
+
+    <section
+      id="proposal"
+      class="page">
+
+      <div class="card">
+
+        <h2>
+          Proposal Builder
+        </h2>
+
+
+        <div class="grid grid-2">
+
+          <div class="field">
+
+            <label>
+              Language
+            </label>
+
+            <select id="proposalLanguage">
+
+              <option>
+                English
+              </option>
+
+              <option>
+                Arabic
+              </option>
+
+              <option>
+                English + Arabic
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Proposal Type
+            </label>
+
+            <select id="proposalType">
+
+              <option>
+                Technical
+              </option>
+
+              <option>
+                Commercial
+              </option>
+
+              <option>
+                Technical + Commercial
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Proposal Content
+          </label>
+
+          <textarea
+            id="proposalContent"
+            placeholder="Generated proposal will appear here.">
+          </textarea>
+
+        </div>
+
+
+        <div class="actions">
+
+          <button
+            class="btn btn-primary"
+            id="generateProposalBtn">
+            Generate Draft
+          </button>
+
+          <button
+            class="btn btn-secondary"
+            id="exportProposalBtn">
+            Export TXT
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- DOCUMENTS -->
+
+    <section
+      id="documents"
+      class="page">
+
+      <div class="card">
+
+        <h2>
+          Documents
+        </h2>
+
+
+        <div class="upload">
+
+          <input
+            id="documentFile"
+            type="file"
+            accept=".pdf,.docx,.txt">
 
         </div>
 
 
         <div
-            id="documentList"
-            class="empty">
+          id="documentsList"
+          style="margin-top:15px">
+        </div>
 
-            No documents uploaded.
+      </div>
+
+    </section>
+
+
+    <!-- SETTINGS -->
+
+    <section
+      id="settings"
+      class="page">
+
+      <div class="card">
+
+        <h2>
+          Settings
+        </h2>
+
+
+        <div class="field">
+
+          <label>
+            Company Name
+          </label>
+
+          <input
+            id="companyName"
+            placeholder="Company name">
 
         </div>
 
-    </div>
 
-</section>
+        <div class="field">
 
+          <label>
+            Default Country
+          </label>
 
-<!-- SETTINGS -->
+          <input
+            id="defaultCountry"
+            placeholder="Kuwait">
 
-<section id="settings" class="page">
-
-    <div class="card">
-
-        <div class="card-title">
-            <h3>System Settings</h3>
         </div>
 
-        <div class="form-grid">
 
-            <div class="form-group">
+        <div class="field">
 
-                <label>Company Name</label>
+          <label>
+            Default Proposal Language
+          </label>
 
-                <input
-                    id="companyName"
-                    placeholder="Your company">
+          <select id="defaultLanguage">
 
-            </div>
+            <option>
+              English
+            </option>
 
+            <option>
+              Arabic
+            </option>
 
-            <div class="form-group">
+            <option>
+              English + Arabic
+            </option>
 
-                <label>Default Country</label>
-
-                <select>
-
-                    <option>Kuwait</option>
-                    <option>Saudi Arabia</option>
-                    <option>UAE</option>
-                    <option>Qatar</option>
-
-                </select>
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>Default Proposal Language</label>
-
-                <select>
-
-                    <option>English</option>
-                    <option>Arabic</option>
-                    <option>English + Arabic</option>
-
-                </select>
-
-            </div>
+          </select>
 
         </div>
 
 
         <button
-            class="btn btn-primary"
-            style="margin-top:20px;"
-            onclick="saveSettings()">
-            Save Settings
+          class="btn btn-primary"
+          id="saveSettingsBtn">
+          Save Settings
         </button>
 
-    </div>
+      </div>
 
-</section>
+    </section>
 
-</main>
-
-</div>
+  </main>
 
 </div>
 
 
-<div class="toast" id="toast"></div>
-
-
-<script>
-
-/* =========================
-   APPLICATION STATE
-========================= */
-
-const state = {
-
-    tender: null,
-
-    file: null,
-
-    documents: [],
-
-    requirements: [
-
-        {
-            id:"REQ-001",
-            requirement:"Submit complete technical methodology",
-            category:"Technical",
-            status:"Compliant"
-        },
-
-        {
-            id:"REQ-002",
-            requirement:"Provide project implementation schedule",
-            category:"Technical",
-            status:"Pending"
-        },
-
-        {
-            id:"REQ-003",
-            requirement:"Provide required company certificates",
-            category:"Legal",
-            status:"Compliant"
-        },
-
-        {
-            id:"REQ-004",
-            requirement:"Submit performance bond",
-            category:"Commercial",
-            status:"Pending"
-        }
-
-    ]
-
-};
-
-
-/* =========================
-   PAGE NAVIGATION
-========================= */
-
-function showPage(page,button){
-
-    document.querySelectorAll(".page")
-        .forEach(p=>p.classList.remove("active"));
-
-    const target=document.getElementById(page);
-
-    if(target){
-        target.classList.add("active");
-    }
-
-    document.querySelectorAll(".nav button")
-        .forEach(b=>b.classList.remove("active"));
-
-    if(button){
-        button.classList.add("active");
-    }
-
-    const titles={
-
-        dashboard:"Dashboard",
-
-        tenders:"Tenders",
-
-        analysis:"Requirement Analysis",
-
-        compliance:"Compliance Matrix",
-
-        risks:"Risk Intelligence",
-
-        proposal:"Proposal Builder",
-
-        documents:"Documents",
-
-        settings:"Settings"
-
-    };
-
-    document.getElementById("pageTitle").textContent=
-        titles[page] || "GCC Tender AI";
-
-    document.getElementById("sidebar")
-        .classList.remove("open");
-
-}
-
-function showPageByName(page){
-
-    const buttons=document.querySelectorAll(".nav button");
-
-    buttons.forEach(button=>{
-
-        if(
-            button.getAttribute("onclick") &&
-            button.getAttribute("onclick").includes("'" + page + "'")
-        ){
-
-            showPage(page,button);
-
-        }
-
-    });
-
-}
-
-function toggleSidebar(){
-
-    document
-        .getElementById("sidebar")
-        .classList.toggle("open");
-
-}
-
-
-/* =========================
-   FILE HANDLING
-========================= */
-
-function handleFile(input){
-
-    if(!input.files.length) return;
-
-    const file=input.files[0];
-
-    state.file=file;
-
-    document.getElementById("dashboardFileName")
-        .textContent="Selected: " + file.name;
-
-    showToast("Tender document selected");
-
-    setTimeout(()=>{
-        showPageByName("tenders");
-    },500);
-
-}
-
-
-function handleTenderFile(input){
-
-    if(!input.files.length) return;
-
-    state.file=input.files[0];
-
-    document.getElementById("tenderFileName")
-        .textContent="Selected: " + state.file.name;
-
-    showToast("Document selected");
-
-}
-
-
-/* =========================
-   TENDER CREATION
-========================= */
-
-function createTender(){
-
-    const name=document
-        .getElementById("tenderName")
-        .value.trim();
-
-    const country=document
-        .getElementById("country")
-        .value;
-
-    const number=document
-        .getElementById("tenderNumber")
-        .value.trim();
-
-    const client=document
-        .getElementById("client")
-        .value.trim();
-
-
-    if(!name){
-
-        showToast("Enter a tender name");
-
-        return;
-
-    }
-
-
-    state.tender={
-
-        name:name,
-
-        country:country,
-
-        number:number || "Not provided",
-
-        client:client || "Not provided",
-
-        file:state.file ? state.file.name : "No document"
-
-    };
-
-
-    localStorage.setItem(
-        "gccTender",
-        JSON.stringify(state.tender)
-    );
-
-
-    renderTenderWorkspace();
-
-    updateStats();
-
-    showToast("Tender workspace created");
-
-
-    setTimeout(()=>{
-
-        showPageByName("analysis");
-
-    },600);
-
-}
-
-
-function renderTenderWorkspace(){
-
-    const box=document.getElementById("tenderWorkspace");
-
-    if(!state.tender){
-
-        box.innerHTML=
-            '<div class="empty">No tender created yet.</div>';
-
-        return;
-
-    }
-
-
-    box.innerHTML=`
-
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;">
-
-            <div>
-                <small style="color:#667085;">Tender</small>
-                <strong style="display:block;margin-top:5px;">
-                    ${escapeHtml(state.tender.name)}
-                </strong>
-            </div>
-
-            <div>
-                <small style="color:#667085;">Country</small>
-                <strong style="display:block;margin-top:5px;">
-                    ${escapeHtml(state.tender.country)}
-                </strong>
-            </div>
-
-            <div>
-                <small style="color:#667085;">Client</small>
-                <strong style="display:block;margin-top:5px;">
-                    ${escapeHtml(state.tender.client)}
-                </strong>
-            </div>
-
-            <div>
-                <small style="color:#667085;">Document</small>
-                <strong style="display:block;margin-top:5px;">
-                    ${escapeHtml(state.tender.file)}
-                </strong>
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-function resetTender(){
-
-    document.getElementById("tenderName").value="";
-    document.getElementById("tenderNumber").value="";
-    document.getElementById("client").value="";
-
-    document.getElementById("tenderFileName")
-        .textContent="";
-
-    state.tender=null;
-    state.file=null;
-
-    localStorage.removeItem("gccTender");
-
-    renderTenderWorkspace();
-
-    showToast("Tender reset");
-
-}
-
-
-/* =========================
-   AI ANALYSIS DEMO
-========================= */
-
-function runAnalysis(){
-
-    const progress=
-        document.getElementById("analysisProgress");
-
-    const status=
-        document.getElementById("analysisStatus");
-
-    const results=
-        document.getElementById("analysisResults");
-
-    const summary=
-        document.getElementById("analysisSummary");
-
-
-    let value=0;
-
-    results.style.display="none";
-
-    status.textContent="Reading tender document...";
-
-    const timer=setInterval(()=>{
-
-        value+=10;
-
-        progress.style.width=value+"%";
-
-
-        if(value===30){
-
-            status.textContent=
-                "Extracting requirements...";
-
-        }
-
-        if(value===60){
-
-            status.textContent=
-                "Classifying technical, commercial and legal requirements...";
-
-        }
-
-        if(value===80){
-
-            status.textContent=
-                "Checking compliance and risk indicators...";
-
-        }
-
-        if(value>=100){
-
-            clearInterval(timer);
-
-            status.textContent=
-                "Analysis completed.";
-
-            summary.textContent=
-
-`Tender Intelligence Summary
-
-Tender: ${state.tender ? state.tender.name : "Demo Tender"}
-
-The system identified key technical, commercial and legal obligations.
-
-Key areas detected:
-• Technical methodology
-• Project schedule
-• Staffing and resources
-• Quality management
-• HSE requirements
-• Commercial conditions
-• Bonds and guarantees
-• Contractual obligations
-• Submission documentation
-
-Recommended next step:
-Review the Compliance Matrix and Risk Intelligence before generating the final proposal.`;
-
-            results.style.display="block";
-
-            showToast("AI analysis completed");
-
-            updateStats();
-
-        }
-
-    },250);
-
-}
-
-
-/* =========================
-   COMPLIANCE MATRIX
-========================= */
-
-function renderCompliance(){
-
-    const table=
-        document.getElementById("complianceTable");
-
-    table.innerHTML="";
-
-
-    state.requirements.forEach((item,index)=>{
-
-        let badgeClass="yellow";
-
-        if(item.status==="Compliant"){
-            badgeClass="green";
-        }
-
-        if(item.status==="Non-Compliant"){
-            badgeClass="red";
-        }
-
-
-        table.innerHTML+=`
-
-        <tr>
-
-            <td>${item.id}</td>
-
-            <td>${escapeHtml(item.requirement)}</td>
-
-            <td>
-                <span class="badge blue">
-                    ${item.category}
-                </span>
-            </td>
-
-            <td>
-
-                <select
-                    onchange="changeRequirementStatus(${index},this.value)"
-                    style="padding:6px;border:1px solid #ddd;border-radius:6px;">
-
-                    <option ${item.status==="Compliant"?"selected":""}>
-                        Compliant
-                    </option>
-
-                    <option ${item.status==="Pending"?"selected":""}>
-                        Pending
-                    </option>
-
-                    <option ${item.status==="Non-Compliant"?"selected":""}>
-                        Non-Compliant
-                    </option>
-
-                </select>
-
-            </td>
-
-            <td>
-
-                <button
-                    class="btn btn-outline"
-                    style="padding:7px 10px;"
-                    onclick="deleteRequirement(${index})">
-                    Delete
-                </button>
-
-            </td>
-
-        </tr>
-
-        `;
-
-    });
-
-}
-
-
-function changeRequirementStatus(index,status){
-
-    state.requirements[index].status=status;
-
-    renderCompliance();
-
-    updateStats();
-
-}
-
-
-function addRequirement(){
-
-    const requirement=
-        prompt("Enter tender requirement:");
-
-    if(!requirement) return;
-
-
-    const id=
-        "REQ-" +
-        String(state.requirements.length+1)
-        .padStart(3,"0");
-
-
-    state.requirements.push({
-
-        id:id,
-
-        requirement:requirement,
-
-        category:"Technical",
-
-        status:"Pending"
-
-    });
-
-
-    renderCompliance();
-
-    updateStats();
-
-    showToast("Requirement added");
-
-}
-
-
-function deleteRequirement(index){
-
-    state.requirements.splice(index,1);
-
-    renderCompliance();
-
-    updateStats();
-
-}
-
-
-/* =========================
-   RISK ANALYSIS
-========================= */
-
-function runRiskAnalysis(){
-
-    const result=
-        document.getElementById("riskResults");
-
-    result.innerHTML=`
-
-        <div class="risk high">
-
-            <span class="badge red">HIGH</span>
-
-            <h4 style="margin:10px 0;">
-                Liquidated Damages
-            </h4>
-
-            <p style="color:#667085;font-size:13px;">
-                Review delay penalties and maximum
-                liability exposure before submission.
-            </p>
-
-        </div>
-
-
-        <div class="risk high">
-
-            <span class="badge red">HIGH</span>
-
-            <h4 style="margin:10px 0;">
-                Missing Mandatory Documents
-            </h4>
-
-            <p style="color:#667085;font-size:13px;">
-                Confirm every mandatory certificate,
-                authorization and supporting document.
-            </p>
-
-        </div>
-
-
-        <div class="risk medium">
-
-            <span class="badge yellow">MEDIUM</span>
-
-            <h4 style="margin:10px 0;">
-                Project Schedule
-            </h4>
-
-            <p style="color:#667085;font-size:13px;">
-                Compare required completion period
-                against available resources.
-            </p>
-
-        </div>
-
-
-        <div class="risk medium">
-
-            <span class="badge yellow">MEDIUM</span>
-
-            <h4 style="margin:10px 0;">
-                Resource Availability
-            </h4>
-
-            <p style="color:#667085;font-size:13px;">
-                Verify manpower, equipment and
-                specialist availability.
-            </p>
-
-        </div>
-
-
-        <div class="risk low">
-
-            <span class="badge green">LOW</span>
-
-            <h4 style="margin:10px 0;">
-                Documentation Formatting
-            </h4>
-
-            <p style="color:#667085;font-size:13px;">
-                Verify final formatting and submission
-                structure before export.
-            </p>
-
-        </div>
-
-    `;
-
-
-    updateStats();
-
-    showToast("Risk analysis completed");
-
-}
-
-
-/* =========================
-   PROPOSAL GENERATOR
-========================= */
-
-function generateProposal(){
-
-    const language=
-        document.getElementById("proposalLanguage").value;
-
-    const type=
-        document.getElementById("proposalType").value;
-
-    const tenderName=
-        state.tender
-        ? state.tender.name
-        : "GCC Tender Project";
-
-
-    const proposal=
-
-`TECHNICAL PROPOSAL
-
-Project:
-${tenderName}
-
-Proposal Type:
-${type}
-
-Language:
-${language}
-
-
-1. EXECUTIVE SUMMARY
-
-Our organization proposes to execute the project in accordance with the tender requirements, applicable standards, approved methodology and project objectives.
-
-
-2. UNDERSTANDING OF THE PROJECT
-
-The project requirements have been reviewed and the key technical, commercial, contractual and operational obligations have been identified.
-
-
-3. PROJECT METHODOLOGY
-
-The works will be executed through a controlled project delivery methodology covering planning, mobilization, execution, quality control, health and safety, testing and final handover.
-
-
-4. PROJECT MANAGEMENT
-
-A dedicated project management structure will be established to control schedule, resources, quality, safety, documentation and stakeholder coordination.
-
-
-5. MANPOWER AND RESOURCES
-
-The required technical personnel, supervisory staff, equipment and supporting resources will be mobilized according to the approved project schedule.
-
-
-6. QUALITY MANAGEMENT
-
-Quality assurance and quality control procedures will be implemented throughout the project lifecycle.
-
-
-7. HEALTH, SAFETY AND ENVIRONMENT
-
-All applicable HSE requirements will be incorporated into project planning, site operations, monitoring and reporting.
-
-
-8. PROJECT SCHEDULE
-
-A detailed baseline schedule will be developed covering mobilization, engineering, procurement, construction, testing and handover activities.
-
-
-9. RISK MANAGEMENT
-
-Identified project risks will be monitored through a formal risk register with mitigation actions, responsible personnel and review procedures.
-
-
-10. COMPLIANCE
-
-The proposal will be aligned with the tender requirements and the compliance matrix will be maintained throughout proposal preparation.
-
-
-11. DOCUMENT CONTROL
-
-All project documentation will be controlled through an organized document management process.
-
-
-12. CONCLUSION
-
-We confirm our commitment to delivering the project in accordance with the applicable tender requirements, contractual obligations, quality standards and approved project objectives.
-`;
-
-
-    document.getElementById("proposalText").value=
-        proposal;
-
-
-    showToast("Proposal generated");
-
-}
-
-
-/* =========================
-   EXPORT
-========================= */
-
-function exportProposal(){
-
-    const text=
-        document.getElementById("proposalText").value;
-
-
-    if(!text.trim()){
-
-        showToast("Generate a proposal first");
-
-        return;
-
-    }
-
-
-    const blob=
-        new Blob([text],{type:"text/plain"});
-
-
-    const url=
-        URL.createObjectURL(blob);
-
-
-    const link=
-        document.createElement("a");
-
-
-    link.href=url;
-
-    link.download=
-        "GCC_Technical_Proposal.txt";
-
-    link.click();
-
-
-    URL.revokeObjectURL(url);
-
-    showToast("Proposal exported");
-
-}
-
-
-/* =========================
-   DOCUMENTS
-========================= */
-
-function addDocument(input){
-
-    if(!input.files.length) return;
-
-    const file=input.files[0];
-
-    state.documents.push({
-
-        name:file.name,
-
-        size:formatBytes(file.size),
-
-        date:new Date().toLocaleDateString()
-
-    });
-
-
-    renderDocuments();
-
-    showToast("Document uploaded");
-
-}
-
-
-function renderDocuments(){
-
-    const box=
-        document.getElementById("documentList");
-
-
-    if(state.documents.length===0){
-
-        box.innerHTML=
-            "No documents uploaded.";
-
-        return;
-
-    }
-
-
-    box.classList.remove("empty");
-
-
-    box.innerHTML=`
-
-        <div class="table-wrap">
-
-            <table>
-
-                <thead>
-
-                    <tr>
-
-                        <th>Document</th>
-                        <th>Size</th>
-                        <th>Date</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    ${state.documents.map(doc=>`
-
-                        <tr>
-
-                            <td>${escapeHtml(doc.name)}</td>
-
-                            <td>${doc.size}</td>
-
-                            <td>${doc.date}</td>
-
-                        </tr>
-
-                    `).join("")}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    `;
-
-}
-
-
-/* =========================
-   DASHBOARD STATS
-========================= */
-
-function updateStats(){
-
-    document.getElementById("totalTenders")
-        .textContent=state.tender ? 1 : 0;
-
-
-    document.getElementById("totalRequirements")
-        .textContent=state.requirements.length;
-
-
-    const compliant=
-        state.requirements.filter(
-            x=>x.status==="Compliant"
-        ).length;
-
-
-    const score=
-        state.requirements.length
-        ? Math.round(
-            compliant /
-            state.requirements.length *
-            100
-          )
-        : 0;
-
-
-    document.getElementById("complianceScore")
-        .textContent=score+"%";
-
-
-    const highRisk=
-        document.querySelectorAll(
-            ".risk.high"
-        ).length;
-
-
-    document.getElementById("highRisks")
-        .textContent=highRisk;
-
-}
-
-
-/* =========================
-   SETTINGS
-========================= */
-
-function saveSettings(){
-
-    const company=
-        document.getElementById("companyName").value;
-
-
-    localStorage.setItem(
-        "companyName",
-        company
-    );
-
-
-    showToast("Settings saved");
-
-}
-
-
-/* =========================
-   UTILITIES
-========================= */
-
-function showToast(message){
-
-    const toast=
-        document.getElementById("toast");
-
-
-    toast.textContent=message;
-
-    toast.style.display="block";
-
-
-    setTimeout(()=>{
-
-        toast.style.display="none";
-
-    },2500);
-
-}
-
-
-function formatBytes(bytes){
-
-    if(bytes===0) return "0 Bytes";
-
-    const units=[
-        "Bytes",
-        "KB",
-        "MB",
-        "GB"
-    ];
-
-    const i=
-        Math.floor(
-            Math.log(bytes) /
-            Math.log(1024)
-        );
-
-
-    return(
-        parseFloat(
-            (bytes /
-            Math.pow(1024,i))
-            .toFixed(2)
-        )+
-        " "+
-        units[i]
-    );
-
-}
-
-
-function escapeHtml(text){
-
-    return String(text)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-
-}
-
-
-/* =========================
-   INITIALIZATION
-========================= */
-
-function init(){
-
-    const savedTender=
-        localStorage.getItem("gccTender");
-
-
-    if(savedTender){
-
-        try{
-
-            state.tender=
-                JSON.parse(savedTender);
-
-        }catch(e){
-
-            state.tender=null;
-
-        }
-
-    }
-
-
-    const company=
-        localStorage.getItem("companyName");
-
-
-    if(company){
-
-        document.getElementById("companyName")
-            .value=company;
-
-    }
-
-
-    renderTenderWorkspace();
-
-    renderCompliance();
-
-    renderDocuments();
-
-    updateStats();
-
-}
-
-
-init();
-
-</script>
 <script src="app.js"></script>
+
 </body>
-  </html>
+</html>
