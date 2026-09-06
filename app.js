@@ -1,6 +1,10 @@
 const App = {
   state: {
     tender: {
+      name: "",
+      country: "",
+      number: "",
+      client: "",
       fileName: "",
       extension: "",
       characters: 0,
@@ -8,15 +12,18 @@ const App = {
       pages: 0,
       text: ""
     },
+
     requirements: [],
     risks: [],
     proposal: "",
     documents: [],
+
     settings: {
       companyName: "",
-      language: "English",
-      theme: "light"
+      country: "",
+      language: "English"
     },
+
     analysisStatus: "idle",
     analysisError: ""
   },
@@ -28,35 +35,124 @@ const App = {
   },
 
   bindEvents() {
-    const fileInput = document.getElementById("fileInput");
-    const uploadBtn = document.getElementById("uploadBtn");
-    const analyzeBtn = document.getElementById("analyzeBtn");
-    const resetBtn = document.getElementById("resetBtn");
-    const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+    const tenderFile = document.getElementById("tenderFile");
+    const createTenderBtn = document.getElementById("createTenderBtn");
+    const runAnalysisBtn = document.getElementById("runAnalysisBtn");
+    const resetTenderBtn = document.getElementById("resetTenderBtn");
 
-    if (uploadBtn && fileInput) {
-      uploadBtn.addEventListener("click", () => fileInput.click());
+    const addRequirementBtn =
+      document.getElementById("addRequirementBtn");
+
+    const runRiskBtn =
+      document.getElementById("runRiskBtn");
+
+    const generateProposalBtn =
+      document.getElementById("generateProposalBtn");
+
+    const exportProposalBtn =
+      document.getElementById("exportProposalBtn");
+
+    const documentFile =
+      document.getElementById("documentFile");
+
+    const quickFile =
+      document.getElementById("quickFile");
+
+    const saveSettingsBtn =
+      document.getElementById("saveSettingsBtn");
+
+    if (tenderFile) {
+      tenderFile.addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (file) this.useFile(file);
+      });
     }
 
-    if (fileInput) {
-      fileInput.addEventListener("change", (event) => {
+    if (createTenderBtn) {
+      createTenderBtn.addEventListener("click", () => {
+        this.createTender();
+      });
+    }
+
+    if (runAnalysisBtn) {
+      runAnalysisBtn.addEventListener("click", () => {
+        this.analyzeTender();
+      });
+    }
+
+    if (resetTenderBtn) {
+      resetTenderBtn.addEventListener("click", () => {
+        this.resetTender();
+      });
+    }
+
+    if (addRequirementBtn) {
+      addRequirementBtn.addEventListener("click", () => {
+        this.addRequirement();
+      });
+    }
+
+    if (runRiskBtn) {
+      runRiskBtn.addEventListener("click", () => {
+        this.analyzeRisks();
+      });
+    }
+
+    if (generateProposalBtn) {
+      generateProposalBtn.addEventListener("click", () => {
+        this.generateProposal();
+      });
+    }
+
+    if (exportProposalBtn) {
+      exportProposalBtn.addEventListener("click", () => {
+        this.exportProposal();
+      });
+    }
+
+    if (documentFile) {
+      documentFile.addEventListener("change", (event) => {
         const file = event.target.files?.[0];
         if (file) {
-          this.useFile(file);
+          this.documents.push({
+            name: file.name,
+            size: file.size,
+            type: file.type
+          });
+
+          this.saveData();
+          this.renderDocuments();
         }
       });
     }
 
-    if (analyzeBtn) {
-      analyzeBtn.addEventListener("click", () => this.analyzeTender());
-    }
+    if (quickFile) {
+      quickFile.addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
 
-    if (resetBtn) {
-      resetBtn.addEventListener("click", () => this.resetTender());
+        if (!file) return;
+
+        this.useFile(file);
+
+        const tenderFileInput =
+          document.getElementById("tenderFile");
+
+        if (tenderFileInput) {
+          try {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            tenderFileInput.files = dataTransfer.files;
+          } catch (error) {}
+        }
+
+        this.showPage("analysis");
+      });
     }
 
     if (saveSettingsBtn) {
-      saveSettingsBtn.addEventListener("click", () => this.saveSettings());
+      saveSettingsBtn.addEventListener("click", () => {
+        this.saveSettings();
+      });
     }
 
     document.querySelectorAll("[data-page]").forEach((button) => {
@@ -66,457 +162,260 @@ const App = {
     });
 
     document.addEventListener("click", (event) => {
-      const addRequirementButton = event.target.closest(
-        "[data-action='add-requirement']"
-      );
+      const deleteButton =
+        event.target.closest("[data-delete-requirement]");
 
-      const analyzeRisksButton = event.target.closest(
-        "[data-action='analyze-risks']"
-      );
+      if (deleteButton) {
+        const index = Number(
+          deleteButton.dataset.deleteRequirement
+        );
 
-      const generateProposalButton = event.target.closest(
-        "[data-action='generate-proposal']"
-      );
-
-      const exportProposalButton = event.target.closest(
-        "[data-action='export-proposal']"
-      );
-
-      const deleteRequirementButton = event.target.closest(
-        "[data-action='delete-requirement']"
-      );
-
-      if (addRequirementButton) {
-        this.addRequirement();
-      }
-
-      if (analyzeRisksButton) {
-        this.analyzeRisks();
-      }
-
-      if (generateProposalButton) {
-        this.generateProposal();
-      }
-
-      if (exportProposalButton) {
-        this.exportProposal();
-      }
-
-      if (deleteRequirementButton) {
-        const index = Number(deleteRequirementButton.dataset.index);
         this.deleteRequirement(index);
       }
     });
 
     document.addEventListener("change", (event) => {
       if (event.target.matches("[data-requirement-status]")) {
-        const index = Number(event.target.dataset.index);
-        this.changeRequirementStatus(index, event.target.value);
+        const index = Number(
+          event.target.dataset.index
+        );
+
+        this.changeRequirementStatus(
+          index,
+          event.target.value
+        );
       }
     });
   },
 
-  loadData() {
-    try {
-      const saved = localStorage.getItem("gccTenderAI");
+  useFile(file) {
+    const extension =
+      file.name.split(".").pop().toLowerCase();
 
-      if (!saved) return;
+    this.state.tender.fileName = file.name;
+    this.state.tender.extension = extension;
 
-      const data = JSON.parse(saved);
+    const fileNameElement =
+      document.getElementById("tenderFileName");
 
-      if (data && typeof data === "object") {
-        this.state = {
-          ...this.state,
-          ...data,
-          tender: {
-            ...this.state.tender,
-            ...(data.tender || {})
-          },
-          settings: {
-            ...this.state.settings,
-            ...(data.settings || {})
-          }
-        };
-      }
-    } catch (error) {
-      console.warn("Could not load saved data:", error);
-      localStorage.removeItem("gccTenderAI");
+    if (fileNameElement) {
+      fileNameElement.textContent = file.name;
     }
-  },
-
-  saveData() {
-    try {
-      localStorage.setItem(
-        "gccTenderAI",
-        JSON.stringify(this.state)
-      );
-    } catch (error) {
-      console.warn("Could not save data:", error);
-    }
-  },
-
-  showPage(pageName) {
-    document.querySelectorAll(".page").forEach((page) => {
-      page.classList.remove("active");
-    });
-
-    const target = document.getElementById(pageName);
-
-    if (target) {
-      target.classList.add("active");
-    }
-
-    document.querySelectorAll("[data-page]").forEach((button) => {
-      button.classList.toggle(
-        "active",
-        button.dataset.page === pageName
-      );
-    });
-
-    this.renderAll();
-  },
-
-  validateFile(file) {
-    const allowedTypes = [
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "text/plain"
-    ];
-
-    const allowedExtensions = ["pdf", "docx", "txt"];
-
-    if (!file) {
-      return {
-        valid: false,
-        error: "Please select a tender file."
-      };
-    }
-
-    const extension = file.name
-      .toLowerCase()
-      .split(".")
-      .pop();
-
-    if (
-      !allowedTypes.includes(file.type) &&
-      !allowedExtensions.includes(extension)
-    ) {
-      return {
-        valid: false,
-        error: "Only PDF, DOCX and TXT files are supported."
-      };
-    }
-
-    const maxSize = 25 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-      return {
-        valid: false,
-        error: "File size cannot exceed 25 MB."
-      };
-    }
-
-    return {
-      valid: true,
-      extension
-    };
-  },
-
-  async useFile(file) {
-    const validation = this.validateFile(file);
-
-    if (!validation.valid) {
-      this.toast(validation.error, "error");
-      return;
-    }
-
-    this.state.analysisStatus = "selected";
-    this.state.analysisError = "";
-
-    this.state.tender = {
-      fileName: file.name,
-      extension: validation.extension,
-      characters: 0,
-      words: 0,
-      pages: 0,
-      text: ""
-    };
 
     this.saveData();
-    this.renderAll();
-
-    this.toast(
-      `${file.name} selected. Click Analyze Tender to process it.`,
-      "success"
-    );
+    this.renderTender();
   },
 
-  async createTender() {
-    const fileInput = document.getElementById("fileInput");
+  createTender() {
+    const name =
+      document.getElementById("tenderName")?.value.trim() || "";
 
-    if (!fileInput || !fileInput.files?.[0]) {
-      this.toast("Please select a tender file first.", "error");
-      return;
-    }
+    const country =
+      document.getElementById("tenderCountry")?.value.trim() || "";
 
-    await this.useFile(fileInput.files[0]);
-  },
+    const number =
+      document.getElementById("tenderNumber")?.value.trim() || "";
 
-  resetTender() {
-    this.state.tender = {
-      fileName: "",
-      extension: "",
-      characters: 0,
-      words: 0,
-      pages: 0,
-      text: ""
-    };
+    const client =
+      document.getElementById("tenderClient")?.value.trim() || "";
 
-    this.state.requirements = [];
-    this.state.risks = [];
-    this.state.proposal = "";
-    this.state.analysisStatus = "idle";
-    this.state.analysisError = "";
+    const file =
+      document.getElementById("tenderFile")?.files?.[0];
 
-    const fileInput = document.getElementById("fileInput");
+    this.state.tender.name = name;
+    this.state.tender.country = country;
+    this.state.tender.number = number;
+    this.state.tender.client = client;
 
-    if (fileInput) {
-      fileInput.value = "";
+    if (file) {
+      this.useFile(file);
     }
 
     this.saveData();
     this.renderAll();
 
-    this.toast("Tender workspace has been reset.", "success");
+    this.showPage("analysis");
   },
 
   async analyzeTender() {
-    const fileInput = document.getElementById("fileInput");
+    const fileInput =
+      document.getElementById("tenderFile");
 
-    if (!fileInput || !fileInput.files?.[0]) {
-      this.toast("Please select a PDF, DOCX or TXT file first.", "error");
+    const file = fileInput?.files?.[0];
+
+    if (!file) {
+      this.state.analysisError =
+        "Please select a PDF, DOCX, or TXT file.";
+
+      this.state.analysisStatus = "error";
+
+      this.renderAnalysis();
       return;
     }
 
-    const file = fileInput.files[0];
+    const allowed =
+      ["pdf", "docx", "txt"];
 
-    const validation = this.validateFile(file);
+    const extension =
+      file.name.split(".").pop().toLowerCase();
 
-    if (!validation.valid) {
-      this.toast(validation.error, "error");
+    if (!allowed.includes(extension)) {
+      this.state.analysisError =
+        "Supported files: PDF, DOCX, TXT.";
+
+      this.state.analysisStatus = "error";
+
+      this.renderAnalysis();
       return;
     }
 
-    this.state.analysisStatus = "extracting";
+    this.state.analysisStatus = "uploading";
     this.state.analysisError = "";
 
-    this.setWorkflowStep(2);
-    this.setProgress(20);
-    this.setStatus("Uploading tender document...");
+    this.renderAnalysis();
 
-    this.renderAll();
+    const progress =
+      document.getElementById("analysisProgress");
 
     try {
+      if (progress) progress.value = 20;
+
       const formData = new FormData();
+
       formData.append("tender", file);
 
-      this.setProgress(40);
-      this.setStatus("Extracting document text...");
+      if (progress) progress.value = 45;
 
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        body: formData
-      });
+      const response = await fetch(
+        "/api/analyze",
+        {
+          method: "POST",
+          body: formData
+        }
+      );
 
-      let data = null;
-
-      try {
-        data = await response.json();
-      } catch {
+      if (!response.ok) {
         throw new Error(
-          "The server returned an invalid response."
+          `Server returned ${response.status}`
         );
       }
 
-      if (!response.ok || !data.success) {
+      if (progress) progress.value = 75;
+
+      const result = await response.json();
+
+      if (!result.success) {
         throw new Error(
-          data?.error || "Tender processing failed."
+          result.error || "Document analysis failed."
         );
       }
 
-      this.state.tender = {
-        fileName: data.fileName || file.name,
-        extension:
-          data.extension || validation.extension,
-        characters: Number(data.characters || 0),
-        words: Number(data.words || 0),
-        pages: Number(data.pages || 0),
-        text: data.text || ""
-      };
+      this.state.tender.fileName =
+        result.fileName || file.name;
 
-      this.state.analysisStatus = "extracted";
+      this.state.tender.extension =
+        result.extension || extension;
 
-      this.setWorkflowStep(3);
-      this.setProgress(70);
-      this.setStatus("Document extraction completed.");
+      this.state.tender.characters =
+        Number(result.characters || 0);
+
+      this.state.tender.words =
+        Number(result.words || 0);
+
+      this.state.tender.pages =
+        Number(result.pages || 0);
+
+      this.state.tender.text =
+        result.text || "";
+
+      this.state.requirements =
+        this.generateInitialRequirements(
+          this.state.tender.text
+        );
+
+      this.state.analysisStatus = "completed";
+      this.state.analysisError = "";
+
+      if (progress) progress.value = 100;
 
       this.saveData();
       this.renderAll();
 
-      this.generateInitialRequirements();
-
-      setTimeout(() => {
-        this.setWorkflowStep(4);
-        this.setProgress(100);
-        this.setStatus(
-          "Extraction completed. Document is ready for verification."
-        );
-
-        this.state.analysisStatus = "ready";
-        this.saveData();
-        this.renderAll();
-      }, 500);
-
-      this.toast(
-        "Tender document extracted successfully.",
-        "success"
-      );
     } catch (error) {
       console.error(error);
 
       this.state.analysisStatus = "error";
+
       this.state.analysisError =
-        error.message || "Tender processing failed.";
+        error.message ||
+        "Unable to analyze the document.";
 
-      this.setProgress(0);
-      this.setStatus(this.state.analysisError);
-
-      this.saveData();
-      this.renderAll();
-
-      this.toast(
-        this.state.analysisError,
-        "error"
-      );
+      this.renderAnalysis();
     }
   },
 
-  setProgress(value) {
-    const progressBars = document.querySelectorAll(
-      "[data-progress]"
-    );
-
-    progressBars.forEach((bar) => {
-      bar.style.width = `${Math.max(
-        0,
-        Math.min(100, value)
-      )}%`;
-    });
-
-    const progressText = document.querySelectorAll(
-      "[data-progress-text]"
-    );
-
-    progressText.forEach((element) => {
-      element.textContent = `${Math.round(value)}%`;
-    });
-  },
-
-  setStatus(message) {
-    document.querySelectorAll("[data-analysis-status]").forEach(
-      (element) => {
-        element.textContent = message;
-      }
-    );
-  },
-
-  setWorkflowStep(step) {
-    document.querySelectorAll(
-      "#analysisWorkflow [data-step]"
-    ).forEach((element) => {
-      const currentStep = Number(element.dataset.step);
-
-      element.classList.toggle(
-        "active",
-        currentStep === step
-      );
-
-      element.classList.toggle(
-        "completed",
-        currentStep < step
-      );
-    });
-  },
-
-  generateInitialRequirements() {
-    const text = this.state.tender.text || "";
-
-    if (!text.trim()) {
-      this.state.requirements = [];
-      this.saveData();
-      this.renderRequirements();
-      return;
-    }
-
+  generateInitialRequirements(text) {
     const requirements = [];
 
-    const patterns = [
-      {
-        regex: /deadline|submission date|closing date|bid closing/i,
-        title: "Tender submission deadline",
-        category: "Administrative"
-      },
-      {
-        regex: /technical proposal|technical offer/i,
-        title: "Technical proposal requirement",
-        category: "Technical"
-      },
-      {
-        regex: /financial proposal|commercial proposal|price schedule/i,
-        title: "Financial/commercial submission",
-        category: "Commercial"
-      },
-      {
-        regex: /performance bond|performance guarantee/i,
-        title: "Performance guarantee requirement",
-        category: "Financial"
-      },
-      {
-        regex: /insurance/i,
-        title: "Insurance requirement",
-        category: "Compliance"
-      },
-      {
-        regex: /experience|similar projects|similar experience/i,
-        title: "Relevant project experience",
-        category: "Qualification"
-      }
+    if (!text) return requirements;
+
+    const lines = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    const keywords = [
+      "shall",
+      "must",
+      "required",
+      "requirement",
+      "mandatory",
+      "submit",
+      "provide",
+      "minimum",
+      "valid"
     ];
 
-    patterns.forEach((item) => {
-      if (item.regex.test(text)) {
+    lines.forEach((line) => {
+      const lower = line.toLowerCase();
+
+      if (
+        keywords.some((keyword) =>
+          lower.includes(keyword)
+        )
+      ) {
         requirements.push({
-          title: item.title,
-          category: item.category,
-          status: "Pending",
-          source: "Tender document"
+          requirement: line.slice(0, 500),
+          source: "Tender document",
+          status: "Pending"
         });
       }
     });
 
-    this.state.requirements = requirements;
+    return requirements.slice(0, 100);
+  },
+
+  addRequirement() {
+    this.state.requirements.push({
+      requirement: "New requirement",
+      source: "Manual",
+      status: "Pending"
+    });
+
     this.saveData();
     this.renderRequirements();
     this.updateDashboard();
   },
 
-  addRequirement() {
-    this.state.requirements.push({
-      title: "New tender requirement",
-      category: "General",
-      status: "Pending",
-      source: "Manual entry"
-    });
+  deleteRequirement(index) {
+    if (
+      index < 0 ||
+      index >= this.state.requirements.length
+    ) {
+      return;
+    }
+
+    this.state.requirements.splice(index, 1);
 
     this.saveData();
     this.renderRequirements();
@@ -533,225 +432,257 @@ const App = {
     this.updateDashboard();
   },
 
-  deleteRequirement(index) {
-    if (!this.state.requirements[index]) return;
-
-    this.state.requirements.splice(index, 1);
-
-    this.saveData();
-    this.renderRequirements();
-    this.updateDashboard();
-  },
-
   analyzeRisks() {
-    if (!this.state.tender.text) {
-      this.toast(
-        "Analyze a tender document before reviewing risks.",
-        "error"
-      );
-      return;
+    const text =
+      this.state.tender.text.toLowerCase();
+
+    const risks = [];
+
+    if (!text) {
+      risks.push({
+        level: "High",
+        title: "Tender document not analyzed",
+        description:
+          "Analyze the tender document before performing risk analysis."
+      });
+    } else {
+      const checks = [
+        {
+          words: [
+            "liquidated damages",
+            "liquidated damage",
+            "penalty"
+          ],
+          title: "Potential penalties",
+          description:
+            "Tender text contains penalty or liquidated-damages provisions."
+        },
+        {
+          words: [
+            "performance bond",
+            "performance guarantee"
+          ],
+          title: "Performance security",
+          description:
+            "Tender text contains performance-security requirements."
+        },
+        {
+          words: [
+            "delay",
+            "completion date",
+            "completion period"
+          ],
+          title: "Schedule risk",
+          description:
+            "Tender text contains schedule or delay-related requirements."
+        },
+        {
+          words: [
+            "warranty",
+            "defects liability"
+          ],
+          title: "Warranty obligation",
+          description:
+            "Tender text contains warranty or defects-liability provisions."
+        },
+        {
+          words: [
+            "insurance",
+            "indemnity"
+          ],
+          title: "Insurance / indemnity",
+          description:
+            "Tender text contains insurance or indemnity obligations."
+        }
+      ];
+
+      checks.forEach((check) => {
+        if (
+          check.words.some((word) =>
+            text.includes(word)
+          )
+        ) {
+          risks.push({
+            level: "Medium",
+            title: check.title,
+            description: check.description
+          });
+        }
+      });
+
+      if (risks.length === 0) {
+        risks.push({
+          level: "Low",
+          title: "No obvious keyword-based risks found",
+          description:
+            "The current rule-based scan did not identify common risk keywords."
+        });
+      }
     }
 
-    /*
-      Phase 1 intentionally does not invent AI-generated risks.
-      Real AI risk intelligence will be connected in Phase 2.
-    */
-
-    this.state.risks = [
-      {
-        title: "AI risk analysis pending",
-        severity: "Pending",
-        description:
-          "The tender has been extracted successfully. Real risk scoring and clause-level analysis will be added when the AI analysis engine is connected.",
-        source: "System"
-      }
-    ];
+    this.state.risks = risks;
 
     this.saveData();
     this.renderRisks();
-
-    this.toast(
-      "Tender extracted. AI risk analysis is not connected yet.",
-      "success"
-    );
   },
 
   generateProposal() {
-    if (!this.state.tender.text) {
-      this.toast(
-        "Analyze a tender document before generating a proposal.",
-        "error"
-      );
-      return;
-    }
+    const language =
+      document.getElementById("proposalLanguage")?.value ||
+      this.state.settings.language ||
+      "English";
 
-    const tenderName =
-      this.state.tender.fileName || "Tender Document";
+    const type =
+      document.getElementById("proposalType")?.value ||
+      "Technical Proposal";
 
-    const requirements = this.state.requirements;
+    const tender =
+      this.state.tender;
 
-    const requirementSection =
-      requirements.length > 0
-        ? requirements
-            .map(
-              (item, index) =>
-                `${index + 1}. ${item.title} — ${item.status}`
-            )
-            .join("\n")
-        : "No structured requirements have been added yet.";
+    const company =
+      this.state.settings.companyName ||
+      "Your Company";
 
-    this.state.proposal = `TECHNICAL PROPOSAL DRAFT
+    const proposal = [
+      `${type}`,
+      "",
+      `Tender: ${tender.name || "N/A"}`,
+      `Tender Number: ${tender.number || "N/A"}`,
+      `Client: ${tender.client || "N/A"}`,
+      `Country: ${tender.country || "N/A"}`,
+      "",
+      "1. Introduction",
+      `This proposal is submitted by ${company} in response to the tender requirements.`,
+      "",
+      "2. Understanding of Requirements",
+      "The tender document has been reviewed and the identified requirements have been considered in preparing this proposal.",
+      "",
+      "3. Methodology",
+      "Our proposed methodology will follow the technical specifications, contractual requirements, applicable standards, quality requirements, and project schedule stated in the tender documents.",
+      "",
+      "4. Quality Management",
+      "Quality control and quality assurance procedures will be implemented throughout project execution.",
+      "",
+      "5. Health, Safety and Environment",
+      "Applicable health, safety and environmental requirements will be incorporated into project execution.",
+      "",
+      "6. Project Management",
+      "The project will be managed using defined responsibilities, reporting procedures, document control, progress monitoring and risk management.",
+      "",
+      "7. Compliance",
+      "The final submission should be checked against every mandatory requirement before submission.",
+      "",
+      `Language: ${language}`
+    ].join("\n");
 
-Tender:
-${tenderName}
-
-1. EXECUTIVE SUMMARY
-
-This document is a structured proposal draft generated from the uploaded tender document. It is intended as a working framework and must be reviewed against the complete tender requirements before submission.
-
-2. UNDERSTANDING OF REQUIREMENTS
-
-The uploaded tender document has been successfully extracted and is available for detailed review.
-
-3. REQUIREMENT CHECKLIST
-
-${requirementSection}
-
-4. TECHNICAL APPROACH
-
-A detailed technical methodology should be prepared after reviewing the scope of work, specifications, drawings, standards, deliverables, schedule and contractual requirements.
-
-5. PROJECT EXECUTION
-
-The final execution plan should define:
-- Mobilization
-- Resources
-- Personnel
-- Equipment
-- Procurement
-- Quality control
-- Health and safety
-- Environmental controls
-- Schedule
-- Reporting
-
-6. QUALITY MANAGEMENT
-
-The final proposal should include the applicable quality assurance and quality control procedures required by the tender.
-
-7. HEALTH, SAFETY AND ENVIRONMENT
-
-The final submission should address all HSE obligations specified in the tender documents.
-
-8. COMMERCIAL AND CONTRACTUAL COMPLIANCE
-
-Commercial schedules, guarantees, insurance requirements, contractual obligations and submission forms must be checked against the official tender documents.
-
-9. FINAL REVIEW
-
-This is a proposal framework, not a final AI-generated tender response. Every statement must be verified against the source tender before submission.
-`;
+    this.state.proposal = proposal;
 
     this.saveData();
     this.renderProposal();
 
     this.showPage("proposal");
-
-    this.toast(
-      "Proposal framework created.",
-      "success"
-    );
   },
 
   exportProposal() {
-    if (!this.state.proposal) {
-      this.toast(
-        "Generate the proposal first.",
-        "error"
-      );
+    const content =
+      this.state.proposal ||
+      document.getElementById("proposalContent")?.value ||
+      "";
+
+    if (!content.trim()) {
       return;
     }
 
-    const fileName =
-      (this.state.tender.fileName || "tender")
-        .replace(/\.[^/.]+$/, "")
-        .replace(/[^a-z0-9-_]+/gi, "_");
-
-    const blob = new Blob(
-      [this.state.proposal],
-      {
+    const blob =
+      new Blob([content], {
         type: "text/plain;charset=utf-8"
-      }
-    );
+      });
 
-    const url = URL.createObjectURL(blob);
+    const url =
+      URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
+    const link =
+      document.createElement("a");
+
     link.href = url;
-    link.download = `${fileName}_proposal_draft.txt`;
+    link.download =
+      "GCC-Tender-Proposal.txt";
 
     document.body.appendChild(link);
     link.click();
     link.remove();
 
     URL.revokeObjectURL(url);
-
-    this.toast(
-      "Proposal draft exported.",
-      "success"
-    );
   },
 
-  addDocument() {
-    const name = prompt("Document name:");
+  resetTender() {
+    this.state.tender = {
+      name: "",
+      country: "",
+      number: "",
+      client: "",
+      fileName: "",
+      extension: "",
+      characters: 0,
+      words: 0,
+      pages: 0,
+      text: ""
+    };
 
-    if (!name || !name.trim()) {
-      return;
+    this.state.requirements = [];
+    this.state.risks = [];
+    this.state.proposal = "";
+    this.state.analysisStatus = "idle";
+    this.state.analysisError = "";
+
+    const fileInput =
+      document.getElementById("tenderFile");
+
+    if (fileInput) {
+      fileInput.value = "";
     }
 
-    this.state.documents.push({
-      name: name.trim(),
-      addedAt: new Date().toISOString()
-    });
-
     this.saveData();
-    this.renderDocuments();
-
-    this.toast(
-      "Document added.",
-      "success"
-    );
+    this.renderAll();
   },
 
   saveSettings() {
-    const companyName =
+    this.state.settings.companyName =
       document.getElementById("companyName")?.value || "";
 
-    const language =
-      document.getElementById("language")?.value || "English";
+    this.state.settings.country =
+      document.getElementById("defaultCountry")?.value || "";
 
-    const theme =
-      document.getElementById("theme")?.value || "light";
-
-    this.state.settings = {
-      companyName: companyName.trim(),
-      language,
-      theme
-    };
+    this.state.settings.language =
+      document.getElementById("defaultLanguage")?.value ||
+      "English";
 
     this.saveData();
+    this.renderSettings();
+  },
 
-    document.documentElement.dataset.theme = theme;
+  showPage(page) {
+    document.querySelectorAll("[data-page-content]").forEach(
+      (section) => {
+        section.style.display =
+          section.dataset.pageContent === page
+            ? ""
+            : "none";
+      }
+    );
 
-    this.toast(
-      "Settings saved.",
-      "success"
+    document.querySelectorAll("[data-page]").forEach(
+      (button) => {
+        button.classList.toggle(
+          "active",
+          button.dataset.page === page
+        );
+      }
     );
   },
 
   renderAll() {
     this.renderTender();
-    this.renderWorkflow();
     this.renderAnalysis();
     this.renderRequirements();
     this.renderRisks();
@@ -762,403 +693,349 @@ This is a proposal framework, not a final AI-generated tender response. Every st
   },
 
   renderTender() {
-    const fileNameElements =
-      document.querySelectorAll("[data-tender-file]");
+    const fileName =
+      document.getElementById("tenderFileName");
 
-    fileNameElements.forEach((element) => {
-      element.textContent =
-        this.state.tender.fileName || "No tender selected";
-    });
-
-    const extensionElements =
-      document.querySelectorAll("[data-tender-extension]");
-
-    extensionElements.forEach((element) => {
-      element.textContent =
-        this.state.tender.extension
-          ? this.state.tender.extension.toUpperCase()
-          : "—";
-    });
-
-    const characterElements =
-      document.querySelectorAll("[data-tender-characters]");
-
-    characterElements.forEach((element) => {
-      element.textContent =
-        this.state.tender.characters.toLocaleString();
-    });
-
-    const wordElements =
-      document.querySelectorAll("[data-tender-words]");
-
-    wordElements.forEach((element) => {
-      element.textContent =
-        this.state.tender.words.toLocaleString();
-    });
-
-    const pageElements =
-      document.querySelectorAll("[data-tender-pages]");
-
-    pageElements.forEach((element) => {
-      element.textContent =
-        this.state.tender.pages || "—";
-    });
-  },
-
-  renderWorkflow() {
-    const containers = [
-      document.getElementById("analysisWorkflow"),
-      document.getElementById("dashboardWorkflow")
-    ].filter(Boolean);
-
-    const status = this.state.analysisStatus;
-
-    let currentStep = 1;
-
-    if (
-      status === "extracting" ||
-      status === "selected"
-    ) {
-      currentStep = 2;
+    if (fileName) {
+      fileName.textContent =
+        this.state.tender.fileName ||
+        "No file selected";
     }
 
-    if (
-      status === "extracted" ||
-      status === "ready"
-    ) {
-      currentStep = 4;
-    }
+    const fields = {
+      tenderName: this.state.tender.name,
+      tenderCountry: this.state.tender.country,
+      tenderNumber: this.state.tender.number,
+      tenderClient: this.state.tender.client
+    };
 
-    if (status === "error") {
-      currentStep = 2;
-    }
+    Object.entries(fields).forEach(
+      ([id, value]) => {
+        const element =
+          document.getElementById(id);
 
-    containers.forEach((container) => {
-      container.innerHTML = `
-        <div class="workflow-step ${currentStep >= 1 ? "active" : ""}">
-          <span>1</span>
-          <div>Upload</div>
-        </div>
-
-        <div class="workflow-line"></div>
-
-        <div class="workflow-step ${
-          currentStep >= 2 ? "active" : ""
-        }">
-          <span>2</span>
-          <div>Extract</div>
-        </div>
-
-        <div class="workflow-line"></div>
-
-        <div class="workflow-step ${
-          currentStep >= 3 ? "active" : ""
-        }">
-          <span>3</span>
-          <div>Analyze</div>
-        </div>
-
-        <div class="workflow-line"></div>
-
-        <div class="workflow-step ${
-          currentStep >= 4 ? "active" : ""
-        }">
-          <span>4</span>
-          <div>Verify</div>
-        </div>
-
-        <div class="workflow-line"></div>
-
-        <div class="workflow-step ${
-          currentStep >= 5 ? "active" : ""
-        }">
-          <span>5</span>
-          <div>Build</div>
-        </div>
-      `;
-    });
+        if (
+          element &&
+          document.activeElement !== element
+        ) {
+          element.value = value || "";
+        }
+      }
+    );
   },
 
   renderAnalysis() {
-    const textElement =
+    const status =
+      document.getElementById("analysisStatus");
+
+    const progress =
+      document.getElementById("analysisProgress");
+
+    const summary =
+      document.getElementById("analysisSummary");
+
+    const extracted =
       document.getElementById("extractedText");
 
-    if (textElement) {
-      textElement.textContent =
-        this.state.tender.text ||
-        "No extracted text available.";
+    if (progress) {
+      const values = {
+        idle: 0,
+        uploading: 30,
+        completed: 100,
+        error: 0
+      };
+
+      progress.value =
+        values[this.state.analysisStatus] ?? 0;
     }
 
-    const errorElement =
-      document.querySelector("[data-analysis-error]");
+    if (status) {
+      const messages = {
+        idle: "Ready",
+        uploading: "Extracting and analyzing document...",
+        completed: "Analysis completed",
+        error: this.state.analysisError || "Analysis failed"
+      };
 
-    if (errorElement) {
-      errorElement.textContent =
-        this.state.analysisError || "";
+      status.textContent =
+        messages[this.state.analysisStatus] ||
+        "Ready";
     }
 
-    this.setProgress(
-      this.state.analysisStatus === "ready" ||
-      this.state.analysisStatus === "extracted"
-        ? 100
-        : this.state.analysisStatus === "extracting"
-        ? 40
-        : 0
-    );
+    if (summary) {
+      if (this.state.analysisStatus === "completed") {
+        summary.textContent =
+          `${this.state.tender.fileName} — ` +
+          `${this.state.tender.words.toLocaleString()} words, ` +
+          `${this.state.tender.characters.toLocaleString()} characters, ` +
+          `${this.state.tender.pages} pages.`;
+      } else if (this.state.analysisError) {
+        summary.textContent =
+          this.state.analysisError;
+      } else {
+        summary.textContent =
+          "No analysis completed yet.";
+      }
+    }
 
-    if (this.state.analysisStatus === "error") {
-      this.setStatus(this.state.analysisError);
-    } else if (this.state.analysisStatus === "ready") {
-      this.setStatus(
-        "Extraction completed. Document is ready for verification."
-      );
-    } else if (this.state.analysisStatus === "selected") {
-      this.setStatus(
-        "File selected. Ready to analyze."
-      );
-    } else {
-      this.setStatus(
-        "Upload a tender document to begin."
-      );
+    if (extracted) {
+      extracted.value =
+        this.state.tender.text || "";
     }
   },
 
   renderRequirements() {
-    const containers =
-      document.querySelectorAll("[data-requirements-list]");
+    const body =
+      document.getElementById("requirementsBody");
 
-    containers.forEach((container) => {
-      if (!this.state.requirements.length) {
-        container.innerHTML = `
-          <div class="empty-state">
-            No requirements identified yet.
-          </div>
+    if (!body) return;
+
+    body.innerHTML = "";
+
+    if (!this.state.requirements.length) {
+      const row =
+        document.createElement("tr");
+
+      row.innerHTML =
+        `<td colspan="5">No requirements identified yet.</td>`;
+
+      body.appendChild(row);
+
+      return;
+    }
+
+    this.state.requirements.forEach(
+      (item, index) => {
+        const row =
+          document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${this.escape(item.requirement)}</td>
+          <td>${this.escape(item.source)}</td>
+          <td>—</td>
+          <td>
+            <select
+              data-requirement-status
+              data-index="${index}"
+            >
+              <option value="Pending" ${
+                item.status === "Pending"
+                  ? "selected"
+                  : ""
+              }>Pending</option>
+
+              <option value="In Progress" ${
+                item.status === "In Progress"
+                  ? "selected"
+                  : ""
+              }>In Progress</option>
+
+              <option value="Complete" ${
+                item.status === "Complete"
+                  ? "selected"
+                  : ""
+              }>Complete</option>
+            </select>
+          </td>
+
+          <td>
+            <button
+              type="button"
+              data-delete-requirement="${index}"
+            >
+              Delete
+            </button>
+          </td>
         `;
-        return;
+
+        body.appendChild(row);
       }
-
-      container.innerHTML =
-        this.state.requirements
-          .map(
-            (item, index) => `
-              <div class="requirement-row">
-                <div>
-                  <strong>${this.escape(item.title)}</strong>
-                  <small>
-                    ${this.escape(item.category)}
-                    ·
-                    ${this.escape(item.source)}
-                  </small>
-                </div>
-
-                <select
-                  data-requirement-status
-                  data-index="${index}"
-                >
-                  <option ${
-                    item.status === "Pending"
-                      ? "selected"
-                      : ""
-                  }>Pending</option>
-
-                  <option ${
-                    item.status === "Compliant"
-                      ? "selected"
-                      : ""
-                  }>Compliant</option>
-
-                  <option ${
-                    item.status === "Partial"
-                      ? "selected"
-                      : ""
-                  }>Partial</option>
-
-                  <option ${
-                    item.status === "Non-Compliant"
-                      ? "selected"
-                      : ""
-                  }>Non-Compliant</option>
-                </select>
-
-                <button
-                  type="button"
-                  data-action="delete-requirement"
-                  data-index="${index}"
-                >
-                  Delete
-                </button>
-              </div>
-            `
-          )
-          .join("");
-    });
+    );
   },
 
   renderRisks() {
-    const containers =
-      document.querySelectorAll("[data-risks-list]");
+    const list =
+      document.getElementById("riskList");
 
-    containers.forEach((container) => {
-      if (!this.state.risks.length) {
-        container.innerHTML = `
-          <div class="empty-state">
-            No risk analysis available yet.
-          </div>
-        `;
-        return;
-      }
+    if (!list) return;
 
-      container.innerHTML =
-        this.state.risks
-          .map(
-            (risk) => `
-              <div class="risk-card">
-                <div>
-                  <strong>${this.escape(
-                    risk.title
-                  )}</strong>
+    list.innerHTML = "";
 
-                  <span>
-                    ${this.escape(
-                      risk.severity
-                    )}
-                  </span>
-                </div>
+    if (!this.state.risks.length) {
+      list.innerHTML =
+        "<li>No risks analyzed yet.</li>";
 
-                <p>
-                  ${this.escape(
-                    risk.description
-                  )}
-                </p>
+      return;
+    }
 
-                <small>
-                  ${this.escape(
-                    risk.source
-                  )}
-                </small>
-              </div>
-            `
-          )
-          .join("");
+    this.state.risks.forEach((risk) => {
+      const item =
+        document.createElement("li");
+
+      item.innerHTML = `
+        <strong>${this.escape(risk.level)}</strong>
+        — ${this.escape(risk.title)}
+        <br>
+        <span>${this.escape(risk.description)}</span>
+      `;
+
+      list.appendChild(item);
     });
   },
 
   renderProposal() {
-    const elements =
-      document.querySelectorAll("[data-proposal]");
+    const content =
+      document.getElementById("proposalContent");
 
-    elements.forEach((element) => {
-      element.value =
-        this.state.proposal || "";
-    });
+    if (!content) return;
+
+    content.value =
+      this.state.proposal || "";
   },
 
   renderDocuments() {
-    const containers =
-      document.querySelectorAll("[data-documents-list]");
+    const container =
+      document.querySelector("[data-documents-list]");
 
-    containers.forEach((container) => {
-      if (!this.state.documents.length) {
-        container.innerHTML = `
-          <div class="empty-state">
-            No documents added.
-          </div>
-        `;
-        return;
-      }
+    if (!container) return;
 
-      container.innerHTML =
-        this.state.documents
-          .map(
-            (documentItem) => `
-              <div class="document-row">
-                <strong>
-                  ${this.escape(
-                    documentItem.name
-                  )}
-                </strong>
-
-                <small>
-                  ${new Date(
-                    documentItem.addedAt
-                  ).toLocaleString()}
-                </small>
-              </div>
-            `
-          )
-          .join("");
-    });
+    container.innerHTML =
+      this.state.documents.length
+        ? this.state.documents
+            .map(
+              (doc) =>
+                `<div>${this.escape(doc.name)}</div>`
+            )
+            .join("")
+        : "";
   },
 
   renderSettings() {
-    const companyInput =
+    const company =
       document.getElementById("companyName");
 
-    const languageInput =
-      document.getElementById("language");
+    const country =
+      document.getElementById("defaultCountry");
 
-    const themeInput =
-      document.getElementById("theme");
+    const language =
+      document.getElementById("defaultLanguage");
 
-    if (companyInput) {
-      companyInput.value =
+    if (
+      company &&
+      document.activeElement !== company
+    ) {
+      company.value =
         this.state.settings.companyName || "";
     }
 
-    if (languageInput) {
-      languageInput.value =
-        this.state.settings.language || "English";
+    if (
+      country &&
+      document.activeElement !== country
+    ) {
+      country.value =
+        this.state.settings.country || "";
     }
 
-    if (themeInput) {
-      themeInput.value =
-        this.state.settings.theme || "light";
+    if (
+      language &&
+      document.activeElement !== language
+    ) {
+      language.value =
+        this.state.settings.language ||
+        "English";
     }
-
-    document.documentElement.dataset.theme =
-      this.state.settings.theme || "light";
   },
 
   updateDashboard() {
     const tenderCount =
-      document.querySelectorAll(
-        "[data-stat='tenders']"
-      );
-
-    tenderCount.forEach((element) => {
-      element.textContent =
-        this.state.tender.fileName ? "1" : "0";
-    });
+      document.getElementById("statTenders");
 
     const requirementCount =
-      document.querySelectorAll(
-        "[data-stat='requirements']"
-      );
+      document.getElementById("statRequirements");
 
-    requirementCount.forEach((element) => {
-      element.textContent =
+    const compliance =
+      document.getElementById("statCompliance");
+
+    const highRisks =
+      document.getElementById("statHighRisks");
+
+    if (tenderCount) {
+      tenderCount.textContent =
+        this.state.tender.fileName ? "1" : "0";
+    }
+
+    if (requirementCount) {
+      requirementCount.textContent =
         this.state.requirements.length;
-    });
+    }
 
-    const riskCount =
-      document.querySelectorAll(
-        "[data-stat='risks']"
+    if (compliance) {
+      const total =
+        this.state.requirements.length;
+
+      const complete =
+        this.state.requirements.filter(
+          (item) => item.status === "Complete"
+        ).length;
+
+      compliance.textContent =
+        total
+          ? `${Math.round(
+              (complete / total) * 100
+            )}%`
+          : "0%";
+    }
+
+    if (highRisks) {
+      highRisks.textContent =
+        this.state.risks.filter(
+          (risk) => risk.level === "High"
+        ).length;
+    }
+  },
+
+  saveData() {
+    try {
+      localStorage.setItem(
+        "gccTenderAI",
+        JSON.stringify(this.state)
       );
-
-    riskCount.forEach((element) => {
-      element.textContent =
-        this.state.risks.length;
-    });
-
-    const documentCount =
-      document.querySelectorAll(
-        "[data-stat='documents']"
+    } catch (error) {
+      console.warn(
+        "Unable to save local data.",
+        error
       );
+    }
+  },
 
-    documentCount.forEach((element) => {
-      element.textContent =
-        this.state.documents.length;
-    });
+  loadData() {
+    try {
+      const saved =
+        localStorage.getItem("gccTenderAI");
+
+      if (!saved) return;
+
+      const data =
+        JSON.parse(saved);
+
+      this.state = {
+        ...this.state,
+        ...data,
+        tender: {
+          ...this.state.tender,
+          ...(data.tender || {})
+        },
+        settings: {
+          ...this.state.settings,
+          ...(data.settings || {})
+        }
+      };
+    } catch (error) {
+      console.warn(
+        "Unable to load saved data.",
+        error
+      );
+    }
   },
 
   escape(value) {
@@ -1168,46 +1045,6 @@ This is a proposal framework, not a final AI-generated tender response. Every st
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
-  },
-
-  toast(message, type = "info") {
-    let container =
-      document.getElementById("toastContainer");
-
-    if (!container) {
-      container = document.createElement("div");
-      container.id = "toastContainer";
-
-      container.style.position = "fixed";
-      container.style.right = "20px";
-      container.style.bottom = "20px";
-      container.style.zIndex = "9999";
-      container.style.display = "flex";
-      container.style.flexDirection = "column";
-      container.style.gap = "10px";
-
-      document.body.appendChild(container);
-    }
-
-    const toast = document.createElement("div");
-
-    toast.textContent = message;
-
-    toast.style.padding = "12px 16px";
-    toast.style.borderRadius = "8px";
-    toast.style.background =
-      type === "error" ? "#b42318" : "#1f2937";
-    toast.style.color = "#ffffff";
-    toast.style.fontSize = "14px";
-    toast.style.maxWidth = "360px";
-    toast.style.boxShadow =
-      "0 8px 24px rgba(0,0,0,.18)";
-
-    container.appendChild(toast);
-
-    setTimeout(() => {
-      toast.remove();
-    }, 4000);
   }
 };
 
