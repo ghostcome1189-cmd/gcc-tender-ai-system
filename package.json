@@ -1,14 +1,15 @@
 {
   "name": "gcc-tender-ai-system",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "AI Tender Intelligence & Proposal Platform",
+  "description": "GCC Tender Intelligence & Proposal Platform",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^5.1.0",
     "multer": "^2.0.2",
-    "pdf-parse": "^1.1.1"
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.9.0"
   }
 }
